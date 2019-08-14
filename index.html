@@ -1,0 +1,254 @@
+<div id="btp_frps" class="bt-form">
+	<div class="bt-w-main" v-show="!init" style="position:relative">
+		<div style="position:absolute;top:50%;width:100%;margin-top:-32px">
+			<div style="background:url('/static/layer/skin/default/loading-2.gif') no-repeat center;height:32px"></div>
+			<div style="text-align:center;line-height:32px">正在加载组件，请稍后 ...</div>
+		</div>
+	</div>
+	<div class="bt-w-main" v-show="init" style="display:none">
+		<div class="bt-w-menu">
+			<p v-bind:class="{bgw: item.value === current}" v-for="item in menu" v-text="item.name" v-on:click="change(item.value)"></p>
+		</div>
+		<div class="bt-w-con pd15 divtable">
+			<div class="bt-box" v-show="current === 'common'">
+				<div class="line">
+					<span class="tname">frps 版本</span>
+					<div class="info-r" v-show="!installed">
+						<input class="inputtxt bt-input-text disable" type="text" value="未安装" disabled="">
+						<span class="modify btn btn-xs btn-success" v-on:click="install">点击安装</span>
+					</div>
+					<div class="info-r" v-show="installed" style="display:none">
+						<input class="inputtxt bt-input-text disable" type="text" v-model="version" disabled="">
+						<span class="modify btn btn-xs btn-success" v-on:click="upgrade">检查更新</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">监听地址</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="0.0.0.0" type="text" style="width:230px" v-model="config.bindAddr">
+						<span style="color:#999">* 支持监听 IPv6 地址</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">TCP 端口</span>
+					<div class="info-r"><input class="bt-input-text mr5" placeholder="7000" type="number" style="width:100px" v-model="config.bindPort"></div>
+				</div>
+				<div class="line">
+					<span class="tname">UDP 端口</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="7001" type="number" style="width:100px" v-model="config.bindUdpPort">
+						<span style="color:#999">* 用于辅助客户端进行打洞穿透 NAT</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">KCP 端口</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="7000" type="number" style="width:100px" v-model="config.kcpBindPort">
+						<span style="color:#999">* KCP 协议的 UDP 端口，可与 TCP 端口相同</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">验证密钥</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="12345678" type="password" style="width:230px" v-model="config.token">
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname"></span>
+					<div class="info-r"><button class="btn btn-success btn-sm" v-on:click="save">保存配置</button></div>
+				</div>
+			</div>
+			<div class="bt-box" v-show="current === 'advanced'">
+				<div class="line">
+					<span class="tname">代理监听地址</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" v-bind:placeholder="config.bindAddr" type="text" style="width:230px" v-model="config.proxyBindAddr">
+						<span style="color:#999">* 默认与通用设置的监听地址相同</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">日志等级</span>
+					<div class="info-r">
+						<select class="bt-input-text mr5" v-model="config.logLevel">
+							<option value="trace">trace</option>
+							<option value="debug">debug</option>
+							<option value="info">info</option>
+							<option value="warn">warn</option>
+							<option value="error">error</option>
+						</select>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">保留天数</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="3" type="number" style="width:100px" v-model="config.logMaxDays">
+						<span style="color:#999">* 超过设定时间的日志将被舍弃</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">心跳超时</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="90" type="number" style="width:100px" v-model="config.heartbeatTimeout">
+						<span style="color:#999">* 不建议修改默认心跳超时，单位：秒，默认值：90</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">最大连接池</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="5" type="number" style="width:100px" v-model="config.maxPoolCount">
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">最大端口数</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="0" type="number" style="width:100px" v-model="config.maxPortsPerClient">
+						<span style="color:#999">* 限制每个客户端最多创建的端口数量，设置为 0 表示不限制</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">TCP 多路复用</span>
+					<div class="info-r">
+						<select class="bt-input-text mr5" v-model="config.tcpMux">
+							<option v-bind:value="false">禁用</option>
+							<option v-bind:value="true">启用</option>
+						</select>
+						<span style="color:#999">* 该配置项在服务端和客户端必须一致</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname"></span>
+					<div class="info-r"><button class="btn btn-success btn-sm" v-on:click="save">保存配置</button></div>
+				</div>
+				<ul class="help-info-text c7" style="display:none">
+					<li>高级设置项目多数情况下保持默认设置即可</li>
+				</ul>
+			</div>
+			<div class="bt-box" v-show="current === 'dashboard'">
+				<div class="line">
+					<span class="tname">监听地址</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" v-bind:placeholder="config.bindAddr" type="text" style="width:230px" v-model="config.dashboardAddr">
+						<span style="color:#999">* 默认与通用设置的监听地址相同</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">监听端口</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="7500" type="text" style="width:100px" v-model="config.dashboardPort">
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">验证账户</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="admin" type="text" style="width:230px" v-model="config.dashboardUser">
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">验证密码</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="admin" type="password" style="width:230px" v-model="config.dashboardPwd">
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname"></span>
+					<div class="info-r"><button class="btn btn-success btn-sm" v-on:click="save">保存配置</button></div>
+				</div>
+			</div>
+			<div class="bt-box" v-show="current === 'vhost'">
+				<div class="line">
+					<span class="tname">二级域名</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="frps.com" type="text" style="width:230px" v-model="config.subdomainHost">
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">HTTP 端口</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="80" type="text" style="width:100px" v-model="config.vhostHttpPort">
+						<span style="color:#999">* 可与通用设置的 TCP 端口相同</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">HTTPS 端口</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="443" type="text" style="width:100px" v-model="config.vhostHttpsPort">
+						<span style="color:#999">* 可与通用设置的 TCP 端口相同</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">HTTP 超时</span>
+					<div class="info-r">
+						<input class="bt-input-text mr5" placeholder="60" type="text" style="width:100px" v-model="config.vhostHttpTimeout">
+						<span style="color:#999">* 请求超时时间，单位：秒，默认：60</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname"></span>
+					<div class="info-r"><button class="btn btn-success btn-sm" v-on:click="save">保存配置</button></div>
+				</div>
+			</div>
+			<div class="bt-box" v-show="current === 'ports'">
+				<div class="mb15">
+					<button class="btn btn-success btn-sm mr5" v-on:click="addPort">添加端口</button>
+					<button class="btn btn-success btn-sm" v-on:click="save">保存配置</button>
+				</div>
+				<div class="divtable">
+					<table class="table table-hover waftable" style="color:#fff">
+						<thead><tr><th width="460">端口</th><th>操作</th></tr></thead>
+					</table>
+					<div style="height:430px;overflow:auto">
+						<table class="table table-hover waftable" style="margin-top:-35px">
+							<thead><tr><th width="460">端口</th><th>操作</th></tr></thead>
+							<tbody>
+								<tr v-for="(port, index) in config.allowPorts">
+									<td v-text="port"></td>
+									<td><a class="btlink" v-on:click="removePort(index)">删除</a></td>
+								</tr>
+								<tr v-if="!config.allowPorts.length">
+									<td colspan="2">未设置任何端口白名单</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+			<div class="bt-box" v-show="current === 'status'">
+				<div class="soft-man-con bt-form">
+					<p class="status">
+						<span v-if="!installed">当前状态：未安装</span>
+						<span v-else-if="started">当前状态：开启</span>
+						<span v-else>当前状态：关闭</span>
+						<span style="color:#20a53a;margin-left:3px" class="glyphicon glyphicon-play" v-if="installed && started"></span>
+						<span style="color:red;margin-left:3px" class="glyphicon glyphicon-pause" v-else></span>
+					</p>
+					<div class="sfm-opt mb15">
+						<button class="btn btn-default btn-sm" v-bind:disabled="!installed || started" v-on:click="start">开启</button>
+						<button class="btn btn-default btn-sm" v-bind:disabled="!installed || !started" v-on:click="restart">重启</button>
+						<button class="btn btn-default btn-sm" v-bind:disabled="!installed || !started" v-on:click="stop">关闭</button>
+						<button class="btn btn-default btn-sm" v-bind:disabled="!installed" v-on:click="clearLogs">清理日志</button>
+					</div>
+					<pre style="margin:0px;width:100%;height:420px;background-color:#333;color:#fff;padding:0 5px;border-radius:0" v-text="logs"></pre>
+				</div>
+			</div>
+			<div class="bt-box" v-show="current === 'about'">
+				<p class="status mb15">本项目依赖以下项目或组件</p>
+				<table class="table table-hover">
+					<thead><tr><th>名称</th><th>网站</th></tr></thead>
+					<tbody>
+						<tr v-for="item in about"><td v-text="item.name"></td><td><a v-bind:href="item.url" target="_blank" rel="noreferrer" v-text="item.url"></a></td></tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div ref="addPort" style="display:none">
+		<div class="bt-form pd20">
+			<div class="line">
+				<span class="tname">端口</span>
+				<div class="info-r c4"><input class="bt-input-text" type="text" placeholder="请输入白名单端口" autocomplete="off" name="__VALUE__" style="width:270px"></div>
+				<div class="info-r c4" style="color:#999">* 可使用「-」表示范围</div>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript" src="/btp_frps/static/init.js"></script>
