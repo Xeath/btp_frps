@@ -4,7 +4,7 @@
   "name": "btp_frps",
   "type": "第三方应用",
   "ps": "frps 是一个可用于内网穿透的高性能反向代理应用的服务端",
-  "versions": "1.0",
+  "versions": "1.1",
   "shell": "install.sh",
   "checks": "/www/server/panel/plugin/btp_frps/btp_frps_main.py",
   "author": "Xeath",

@@ -118,7 +118,7 @@ new Vue({
 		},
 		install() {
 			const t = this;
-			const msgId = layer.msg(t.installed ? "正在更新 frps，请稍等 ..." : "正在安装 frps，请稍等 ...", {
+			const msgId = layer.msg("正在提交任务，请稍等 ...", {
 				icon: 16,
 				time: 0,
 				shade: 0.3
@@ -127,17 +127,7 @@ new Vue({
 				layer.close(msgId);
 				if (response.status === 200 && typeof response.data === 'object') {
 					if (response.data.status) {
-						if (t.started) {
-							layer.confirm('更新成功！重启 frps 后将以新版本运行', {icon: 1, btn: ['重启', '关闭']}, (index) => {
-								layer.close(index);
-								t.restart();
-							});
-						} else {
-							layer.msg(t.installed ? '更新成功' : '安装成功', {icon: 1});
-						}
-						t.version = response.data.msg.version;
-						t.installed = true;
-						return;
+						return layer.msg(response.data.msg, {icon: response.data.status ? 1 : 2});
 					}
 					return layer.alert(response.data.msg, {
 						icon: 2

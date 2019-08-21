@@ -2,13 +2,14 @@
 # coding: utf-8
 #  Author: Xetch
 
-import sys, os, json, ssl
-pluginPath = "/www/server/panel/plugin/btp_frps"
+import sys, os, json, ssl, time;
+pluginPath = "/www/server/panel/plugin/btp_frps";
 frpsPath = pluginPath + '/bin/frps';
 frpsIniPath = pluginPath + '/conf/frps.ini';
-os.chdir("/www/server/panel")
-sys.path.append("class/")
-import public, re
+os.chdir("/www/server/panel");
+sys.path.append("class/");
+import public, re;
+from BTPanel import cache;
 
 class btp_frps_main():
 	def check(self, get):
@@ -25,23 +26,18 @@ class btp_frps_main():
 		});
 
 	def install(self, get):
+		taskName = 'frps';
+		if self.__getTaskStatus(taskName) != 1:
+			return public.returnMsg(False, '安装任务已在队列中');
 		release = self.release();
 		if release['result'] != 'success':
 			return public.returnMsg(False, release['result']);
-		filename = pluginPath + '/temp/release.tar.gz';
-		os.system('mkdir -p ' + pluginPath + '/temp');
-		os.system('mkdir -p ' + pluginPath + '/bin');
-		os.system('rm -rf ' + filename);
-		os.system('wget -O ' + filename + ' ' + release['url']);
-		os.system('tar -xzf ' + filename + ' -C ' + pluginPath + '/temp');
-		os.system('mv -f ' + pluginPath + '/temp/frp_*/frps ' + frpsPath);
-		os.system('chown root:root ' + frpsPath);
-		os.system('chmod +x ' + frpsPath);
-		os.system('rm -rf ' + pluginPath + '/temp/frp_*');
-		os.system('rm -rf ' + filename);
-		if not os.path.isfile(frpsPath):
-			return public.returnMsg(False, '安装失败');
-		return self.check(get);
+		cmd = "cd %s && /bin/bash install.sh download \"%s\"" % (pluginPath, release['url']);
+		public.M('tasks').add('id, name, type, status, addtime, execstr', (None, '安装 [' + taskName + '-' + release['version'] + ']', 'execshell', '0', time.strftime('%Y-%m-%d %H:%M:%S'), cmd))
+		cache.delete('install_task')
+		public.writeFile('/tmp/panelTask.pl', 'True')
+		public.WriteLog('TYPE_SETUP', 'PLUGIN_ADD', (taskName, release['version']));
+		return public.returnMsg(True, '已将安装任务添加到队列');
 
 	def upgrade(self, get):
 		release = self.release();
@@ -171,7 +167,6 @@ WantedBy=multi-user.target''' % (frpsPath, frpsIniPath);
 			os.system('systemctl start btp_frps');
 		else:
 			os.system('nohup %s -c %s &' % (frpsPath, frpsIniPath));
-		import time;
 		time.sleep(1);
 		pid = self.__pid();
 		if pid != False:
@@ -222,5 +217,15 @@ WantedBy=multi-user.target''' % (frpsPath, frpsIniPath);
 		if success.strip() == '':
 			return False;
 		return success.strip();
+
+	def __getTaskStatus(self, taskName):
+		result = public.M('tasks').where("status!=?", ('1',)).field('status,name').select();
+		status = 1;
+		for task in result:
+			name = public.getStrBetween('[', ']', task['name']);
+			if not name:continue;
+			if name.split('-')[0] == taskName:
+				status = int(task['status']);
+		return status;
 
 #print(btp_frps_main().install({}));
