@@ -126,12 +126,8 @@ new Vue({
 			t.api('install').then((response) => {
 				layer.close(msgId);
 				if (response.status === 200 && typeof response.data === 'object') {
-					if (response.data.status) {
-						return layer.msg(response.data.msg, {icon: response.data.status ? 1 : 2});
-					}
-					return layer.alert(response.data.msg, {
-						icon: 2
-					});
+					bt.pub.get_task_count();
+					return layer.msg(response.data.msg, {icon: response.data.status ? 1 : 2});
 				}
 				layer.alert('发生未知错误，代码：' + response.status, {
 					icon: 2
