@@ -39,6 +39,33 @@ class btp_frps_main():
 		public.WriteLog('TYPE_SETUP', 'PLUGIN_ADD', (taskName, release['version']));
 		return public.returnMsg(True, '已将安装任务添加到队列');
 
+	def upload(self, get):
+		filename = pluginPath + '/temp/import.tar.gz';
+		try:
+			from flask import request;
+			file = request.files['import'];
+			if file.filename[-7:] == '.tar.gz' or file.filename[-4:] == '.zip':
+				if file.filename[-4:] == '.zip':
+					filename = pluginPath + '/temp/import.zip';
+				os.system('rm -rf ' + pluginPath + '/temp/import');
+				os.system('mkdir -p ' + pluginPath + '/temp/import');
+				os.system('mkdir -p ' + pluginPath + '/bin');
+				os.system('rm -rf ' + filename);
+				file.save(filename);
+				import panelTask;
+				panelTask.bt_task()._unzip(filename, pluginPath + '/temp/import', '', '/dev/null');
+				success, failed = public.ExecShell('find %s/temp/import -name frps' % pluginPath);
+				if success.strip() != '':
+					os.system('mv -f %s %s' % (success.strip(), frpsPath));
+					os.system('chown root:root ' + frpsPath);
+					os.system('chmod +x ' + frpsPath);
+					os.system('rm -rf ' + pluginPath + '/temp/import');
+					os.system('rm -rf ' + filename);
+					if os.path.isfile(frpsPath):
+						return self.check(get);
+		except:pass;
+		return public.returnMsg(False, '无效文件或未找到 frps');
+
 	def upgrade(self, get):
 		release = self.release();
 		if release['result'] != 'success':

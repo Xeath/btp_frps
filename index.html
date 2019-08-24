@@ -12,14 +12,19 @@
 		<div class="bt-w-con pd15 divtable">
 			<div class="bt-box" v-show="current === 'common'">
 				<div class="line">
+					<input type="file" style="display:none" accept=".tar.gz,.zip" v-on:change="uploadFile" ref="import"/>
 					<span class="tname">frps 版本</span>
-					<div class="info-r" v-show="!installed">
-						<input class="inputtxt bt-input-text disable" type="text" value="未安装" disabled="">
-						<span class="modify btn btn-xs btn-success" v-on:click="install">点击安装</span>
-					</div>
-					<div class="info-r" v-show="installed" style="display:none">
-						<input class="inputtxt bt-input-text disable" type="text" v-model="version" disabled="">
-						<span class="modify btn btn-xs btn-success" v-on:click="upgrade">检查更新</span>
+					<div class="info-r">
+						<template v-if="!installed">
+							<input class="inputtxt bt-input-text disable" type="text" value="未安装" disabled="">
+							<span class="btn btn-xs btn-success" v-on:click="install">在线安装</span>
+						</template>
+						<template v-else>
+							<input class="inputtxt bt-input-text disable" type="text" v-model="version" disabled="">
+							<span class="btn btn-xs btn-success" v-on:click="upgrade">检查更新</span>
+						</template>
+						<span class="btn btn-xs btn-success" v-on:click="$refs.import.click()" v-text="installed ? '离线更新' : '离线安装'"></span>
+						<a href="https://github.com/fatedier/frp/releases" target="_blank" rel="noreferrer">前往 GitHub 下载</a>
 					</div>
 				</div>
 				<div class="line">

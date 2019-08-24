@@ -107,14 +107,14 @@ new Vue({
 			logFile: '',
 			logLevel: 'info',
 			logMaxDays: 3,
-			token: '12345678',
+			token: '',
 			heartbeatTimeout: '',
 			allowPorts: [],
 			maxPoolCount: 5,
 			maxPortsPerClient: 0,
 			subdomainHost: '',
 			tcpMux: true,
-			custom404Page: '',
+			custom404Page: '/www/server/panel/plugin/btp_frps/conf/404.html',
 			enabledCustom404Page: false
 		},
 		logs: '',
@@ -136,7 +136,14 @@ new Vue({
 				layer.close(msgId);
 				if (response.status === 200 && typeof response.data === 'object') {
 					bt.pub.get_task_count();
-					return layer.msg(response.data.msg, {icon: response.data.status ? 1 : 2});
+					if (t.installed && t.started) {
+						layer.alert('提交成功，更新完成后请手动重启 frps', {
+							icon: 2
+						});
+					} else {
+						layer.msg(response.data.msg, {icon: response.data.status ? 1 : 2});
+					}
+					return;
 				}
 				layer.alert('发生未知错误，代码：' + response.status, {
 					icon: 2
@@ -522,6 +529,49 @@ new Vue({
 						window.openEditorViewModeModified(0, t.config.custom404Page);
 					}
 			}
+		},
+		uploadFile() {
+			const t = this;
+			const params = new FormData();
+			const msgId = layer.msg("正在上传文件，请稍等 ...", {
+				icon: 16,
+				time: 0,
+				shade: 0.3
+			});
+			params.append('import', t.$refs.import.files[0]);
+			axios.post('/plugin?action=a&name=btp_frps&s=upload', params, {headers: {'Content-Type': 'multipart/form-data'}}).then((response) => {
+				t.$refs.import.value = null;
+				layer.close(msgId);
+				if (response.status === 200 && typeof response.data === 'object') {
+					if (response.data.status) {
+						t.started = response.data.msg.pid !== false;
+						if (t.started) {
+							layer.confirm('更新成功！重启 frps 后将以新版本运行', {icon: 1, btn: ['重启', '关闭']}, (index) => {
+								layer.close(index);
+								t.restart();
+							});
+						} else {
+							layer.msg(t.installed ? '更新成功' : '安装成功', {icon: 1});
+						}
+						t.version = response.data.msg.version;
+						t.installed = true;
+						return;
+					}
+					return layer.alert(response.data.msg, {
+						icon: 2
+					});
+				}
+				layer.alert('发生未知错误，代码：' + response.status, {
+					icon: 2
+				});
+			}).catch((error) => {
+				t.$refs.import.value = null;
+				layer.close(msgId);
+				layer.alert('文件上传失败', {
+					icon: 2
+				})
+				console.error(error);
+			});
 		},
 		api(action, data) {
 			if (!data) {
