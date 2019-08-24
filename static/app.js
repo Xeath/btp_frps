@@ -138,7 +138,7 @@ new Vue({
 					bt.pub.get_task_count();
 					if (t.installed && t.started) {
 						layer.alert('提交成功，更新完成后请手动重启 frps', {
-							icon: 2
+							icon: 1
 						});
 					} else {
 						layer.msg(response.data.msg, {icon: response.data.status ? 1 : 2});
