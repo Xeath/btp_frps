@@ -79,10 +79,10 @@
 					</div>
 				</div>
 				<div class="line">
-					<span class="tname">保留天数</span>
+					<span class="tname">日志切割</span>
 					<div class="info-r">
 						<input class="bt-input-text mr5" placeholder="3" type="number" style="width:100px" v-model="config.logMaxDays">
-						<span style="color:#999">* 超过设定时间的日志将被舍弃</span>
+						<span style="color:#999">* 按设定时间进行日志切割，单位：天</span>
 					</div>
 				</div>
 				<div class="line">
@@ -180,6 +180,16 @@
 					<div class="info-r">
 						<input class="bt-input-text mr5" placeholder="60" type="text" style="width:100px" v-model="config.vhostHttpTimeout">
 						<span style="color:#999">* 请求超时时间，单位：秒，默认：60</span>
+					</div>
+				</div>
+				<div class="line">
+					<span class="tname">404 页面</span>
+					<div class="info-r">
+						<select class="bt-input-text mr5" v-model="config.enabledCustom404Page">
+							<option v-bind:value="false">禁用</option>
+							<option v-bind:value="true">启用</option>
+						</select>
+						<button class="btn btn-xs btn-success" v-on:click="custom404Page" v-bind:disabled="!config.enabledCustom404Page">自定义</button>
 					</div>
 				</div>
 				<div class="line">

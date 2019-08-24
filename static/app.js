@@ -76,6 +76,14 @@ new Vue({
 			{
 				name: "layer",
 				url: "https://layer.layui.com/"
+			},
+			{
+				name: "Ace",
+				url: "https://ace.c9.io/"
+			},
+			{
+				name: "CodeMirror",
+				url: "https://codemirror.net/"
 			}
 		],
 		current: "common",
@@ -106,7 +114,8 @@ new Vue({
 			maxPortsPerClient: 0,
 			subdomainHost: '',
 			tcpMux: true,
-			custom404Page: ''
+			custom404Page: '',
+			enabledCustom404Page: false
 		},
 		logs: '',
 		timer: null,
@@ -137,7 +146,7 @@ new Vue({
 				layer.alert('接口请求失败', {
 					icon: 2
 				})
-				console.log(error);
+				console.error(error);
 			});
 		},
 		upgrade() {
@@ -171,7 +180,7 @@ new Vue({
 				layer.alert('接口请求失败', {
 					icon: 2
 				})
-				console.log(error);
+				console.error(error);
 			});
 		},
 		addPort() {
@@ -254,7 +263,7 @@ new Vue({
 				layer.alert('接口请求失败', {
 					icon: 2
 				});
-				console.log(error);
+				console.error(error);
 			});
 		},
 		check() {
@@ -275,7 +284,7 @@ new Vue({
 			}).catch((error) => {
 				layer.close(msgId);
 				t.read();
-				console.log(error);
+				console.error(error);
 			});
 		},
 		read() {
@@ -298,7 +307,7 @@ new Vue({
 				}
 			}).catch((error) => {
 				layer.close(msgId);
-				console.log(error);
+				console.error(error);
 			});
 		},
 		start() {
@@ -327,7 +336,7 @@ new Vue({
 				layer.alert('接口请求失败', {
 					icon: 2
 				})
-				console.log(error);
+				console.error(error);
 			});
 		},
 		stop() {
@@ -356,7 +365,7 @@ new Vue({
 				layer.alert('接口请求失败', {
 					icon: 2
 				})
-				console.log(error);
+				console.error(error);
 			});
 		},
 		restart() {
@@ -385,7 +394,7 @@ new Vue({
 				layer.alert('接口请求失败', {
 					icon: 2
 				})
-				console.log(error);
+				console.error(error);
 			});
 		},
 		getLogs() {
@@ -402,7 +411,7 @@ new Vue({
 				}).catch((error) => {
 					t.timer = setTimeout(t.getLogs, 3000);
 					t.logs = '接口请求失败';
-					console.log(error);
+					console.error(error);
 				});
 			}
 		},
@@ -432,8 +441,87 @@ new Vue({
 				layer.alert('接口请求失败', {
 					icon: 2
 				})
-				console.log(error);
+				console.error(error);
 			});
+		},
+		custom404Page() {
+			const t = this;
+			if (!window.openEditorView) {
+				window.OnlineEditFile(0, t.config.custom404Page);
+			} else {
+				if (!window.ace) {
+					window.__btpFrpsMsgId = layer.msg("正在加载编辑器，请稍等 ...", {
+						icon: 16,
+						time: 0,
+						shade: 0.3
+					});
+				}
+				t.openWithAce();
+			}
+		},
+		openWithAce() {
+			const t = this;
+			const $doc = document;
+			switch (true) {
+				case !window.ace:
+					const $ace = $doc.createElement("script");
+					$ace.setAttribute("type", "text/javascript");
+					$ace.setAttribute("src", "/static/ace/ace.js");
+					$ace.addEventListener("load", function () {
+						$ace.remove();
+						const $aceExtra = $doc.createElement("script");
+						$aceExtra.setAttribute("type", "text/javascript");
+						$aceExtra.setAttribute("src", "/static/ace/ext-language_tools.js");
+						$aceExtra.addEventListener("load", function () {
+							$aceExtra.remove();
+							t.openWithAce();
+						});
+						$doc.head.append($aceExtra);
+					});
+					$doc.head.append($ace);
+					break;
+
+				case !$doc.querySelector('#aceTmplate'):
+					const $aceTmplate = $doc.createElement("script");
+					$aceTmplate.setAttribute("type", "text/template");
+					$aceTmplate.setAttribute("id", "aceTmplate");
+					axios.get('/files').then((response) => {
+						if (response.status === 200) {
+							const matches = response.data.match(/aceTmplate[^>]*>([\s\S]+?)<\/script>/);
+							if (matches) {
+								$aceTmplate.innerHTML = matches[1];
+							}
+						}
+						t.openWithAce();
+					}).catch((error) => {
+						t.openWithAce();
+						console.error(error);
+					});
+					$doc.body.append($aceTmplate);
+					break;
+
+				case !window.openEditorViewModeModified:
+					// 打开后在插件设置框后面，需要进行一下修改
+					let func = window.openEditorView.toString();
+					func = func.replace('openEditorView', '');
+					func = func.replace(/zIndex\s*:[^,]+,/, '');
+					// func = func.replace(/layer\.closeAll\(\)/g, 'layer.close(indexs)');
+					eval('window.openEditorViewModeModified = ' + func);
+					t.openWithAce();
+					break;
+
+				default:
+					if (window.__btpFrpsMsgId) {
+						layer.close(window.__btpFrpsMsgId);
+						window.__btpFrpsMsgId = null;
+					}
+					if (!$doc.querySelector('#aceTmplate').innerHTML) {
+						window.OnlineEditFile(0, t.config.custom404Page);
+					} else {
+						// window.aceEditor.pathAarry = [];
+						window.openEditorViewModeModified(0, t.config.custom404Page);
+					}
+			}
 		},
 		api(action, data) {
 			if (!data) {

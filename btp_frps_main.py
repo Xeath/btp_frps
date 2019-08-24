@@ -88,6 +88,11 @@ class btp_frps_main():
 			if type(data['allowPorts']) == list and len(data['allowPorts']) > 0:
 				config += 'allow_ports = %s\n' % ','.join(data['allowPorts']);
 			config += 'log_file = %s/temp/frps.log\n' % pluginPath;
+			filename = pluginPath + '/conf/404.html';
+			if not os.path.isfile(filename):
+				public.WriteFile(filename, '', mode='w+');
+			if data['enabledCustom404Page'] == True and os.path.getsize(filename) > 0:
+				config += 'custom_404_page = %s\n' % filename;
 			public.WriteFile(frpsIniPath, config, mode='w+');
 			return public.returnMsg(True, '保存成功');
 		except ValueError:
@@ -97,7 +102,9 @@ class btp_frps_main():
 		filename = pluginPath + '/conf/config.json';
 		if os.path.isfile(filename):
 			try:
-				return public.returnMsg(True, json.loads(public.ReadFile(filename, mode='r')));
+				config = json.loads(public.ReadFile(filename, mode='r'));
+				config['custom404Page'] = pluginPath + '/conf/404.html';
+				return public.returnMsg(True, config);
 			except ValueError:pass;
 		return public.returnMsg(False, '配置文件损坏或不存在');
 
