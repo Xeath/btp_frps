@@ -513,7 +513,8 @@ new Vue({
 					func = func.replace('openEditorView', '');
 					func = func.replace(/zIndex\s*:[^,]+,/, '');
 					// func = func.replace(/layer\.closeAll\(\)/g, 'layer.close(indexs)');
-					eval('window.openEditorViewModeModified = ' + func);
+					// eval('window.openEditorViewModeModified = ' + func);
+					window.openEditorViewModeModified = new Function(func.match(/\(([^\)]+)\)/)[1], func.match(/\{([\s\S]+)\}/)[1]);
 					t.openWithAce();
 					break;
 
