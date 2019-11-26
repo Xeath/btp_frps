@@ -121,6 +121,16 @@
 					</div>
 				</div>
 				<div class="line">
+					<span class="tname">日志颜色</span>
+					<div class="info-r">
+						<select class="bt-input-text mr5" v-model="config.disableLogColor">
+							<option v-bind:value="false">禁用</option>
+							<option v-bind:value="true">启用</option>
+						</select>
+						<span style="color:#999">* 仅使用控制台运行 frps 有效</span>
+					</div>
+				</div>
+				<div class="line">
 					<span class="tname"></span>
 					<div class="info-r"><button class="btn btn-success btn-sm" v-on:click="save">保存配置</button></div>
 				</div>

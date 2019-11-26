@@ -40,6 +40,8 @@
 				$axios.remove();
 				if (window.my_headers) {
 					window.axios.defaults.headers.common = window.my_headers;
+				} else if (jQuery.ajaxSettings.headers) {
+					window.axios.defaults.headers.common = jQuery.ajaxSettings.headers;
 				}
 				func(func);
 			});

@@ -101,6 +101,7 @@ class btp_frps_main():
 				"maxPortsPerClient": "max_ports_per_client",
 				"subdomainHost": "subdomain_host",
 				"tcpMux": "tcp_mux",
+				"disableLogColor": "disable_log_color",
 				# "custom404Page": "custom_404_page"
 			};
 			config = '[common]\n';

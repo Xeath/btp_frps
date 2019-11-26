@@ -114,6 +114,7 @@ new Vue({
 			maxPortsPerClient: 0,
 			subdomainHost: '',
 			tcpMux: true,
+			disableLogColor: false,
 			custom404Page: '/www/server/panel/plugin/btp_frps/conf/404.html',
 			enabledCustom404Page: false
 		},
@@ -217,6 +218,8 @@ new Vue({
 						layer.msg('端口格式错误，请重新输入', {icon: 2});
 						return false;
 					}
+					beginPort = parseInt(beginPort);
+					endPort = parseInt(endPort);
 					if (beginPort < 0 || beginPort > 65535 || endPort < 0 || endPort > 65535) {
 						layer.msg('端口范围为 0 至 65535，请重新输入', {icon: 2});
 						return false;
